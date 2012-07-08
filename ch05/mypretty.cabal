@@ -1,0 +1,17 @@
+Name:        mypretty
+Version:     0.1
+Synopsis:    My pretty printing lib with JSON support.
+Description:
+  A simple pretty printing library that demonstates how to
+  build a Haskell library.
+Author:      Ben Doerr
+Maintainer:  craftsman@bendoerr.me
+
+Cabal-Version: >= 1.2
+Build-Type: Simple
+
+library
+  Exposed-Modules: Prettify
+                   PrettyJSON
+                   SimpleJSON
+  Build-Depends:   base >= 2.0

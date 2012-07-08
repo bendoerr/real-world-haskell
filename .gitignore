@@ -1,1 +1,4 @@
 Real_World_Haskell.pdf
+**.hi
+**.o
+dist/
