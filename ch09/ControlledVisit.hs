@@ -1,6 +1,7 @@
 module ControlledVisit (
       Info (..), getInfo
-      , traverse
+      , traverse, getUsefulContents
+      , isDirectory
 ) where
 
 import Control.Exception (handle, IOException)
