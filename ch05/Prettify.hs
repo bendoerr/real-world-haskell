@@ -1,8 +1,11 @@
 module Prettify (
-        Doc,
+        Doc (..),
         (<>),
+        empty,
         char,
         double,
+        line,
+        fold,
         fsep,
         hcat,
         punctuate,
@@ -30,7 +33,7 @@ empty :: Doc
 empty = Empty
 
 char :: Char -> Doc
-char c = Char c
+char = Char
 
 double :: Double -> Doc
 double d = text (show d)
@@ -76,7 +79,7 @@ flatten other          = other
 -- Puts a doc between every item in a list of Docs.
 punctuate :: Doc -> [Doc] -> [Doc]
 punctuate _ []     = []
-punctuate p [d]    = [d]
+punctuate _ [d]    = [d]
 punctuate p (d:ds) = (d <> p) : punctuate p ds-- Helper. Encloses a doc between two characters.
 
 compact :: Doc -> String

@@ -1,0 +1,129 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>module Prettify (
+<span class="lineno">    2 </span>        Doc (..),
+<span class="lineno">    3 </span>        (&lt;&gt;),
+<span class="lineno">    4 </span>        empty,
+<span class="lineno">    5 </span>        char,
+<span class="lineno">    6 </span>        double,
+<span class="lineno">    7 </span>        line,
+<span class="lineno">    8 </span>        fold,
+<span class="lineno">    9 </span>        fsep,
+<span class="lineno">   10 </span>        hcat,
+<span class="lineno">   11 </span>        punctuate,
+<span class="lineno">   12 </span>        text,
+<span class="lineno">   13 </span>        compact,
+<span class="lineno">   14 </span>        pretty
+<span class="lineno">   15 </span>    ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>data Doc = Empty
+<span class="lineno">   18 </span>         | Char Char
+<span class="lineno">   19 </span>         | Text String
+<span class="lineno">   20 </span>         | Line
+<span class="lineno">   21 </span>         | Concat Doc Doc
+<span class="lineno">   22 </span>         | Union Doc Doc
+<span class="lineno">   23 </span>         | Indent
+<span class="lineno">   24 </span>          deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>,<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- Concatinates Docs. Similar to ++ for strings.
+<span class="lineno">   27 </span>(&lt;&gt;) :: Doc -&gt; Doc -&gt; Doc
+<span class="lineno">   28 </span><span class="decl"><span class="istickedoff">Empty &lt;&gt; b = b</span>
+<span class="lineno">   29 </span><span class="spaces"></span><span class="istickedoff">a &lt;&gt; Empty = a</span>
+<span class="lineno">   30 </span><span class="spaces"></span><span class="istickedoff">a &lt;&gt; b     = a `Concat` b</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>empty :: Doc
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">empty = Empty</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>char :: Char -&gt; Doc
+<span class="lineno">   36 </span><span class="decl"><span class="istickedoff">char = Char</span></span>
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>double :: Double -&gt; Doc
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">double d = text (show d)</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>text :: String -&gt; Doc
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">text &quot;&quot; = Empty</span>
+<span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">text s  = Text s</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- Creates a hard line break.
+<span class="lineno">   46 </span>line :: Doc
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">line = Line</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>-- Concatinates a list of Docs.
+<span class="lineno">   50 </span>hcat :: [Doc] -&gt; Doc
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">hcat = fold (&lt;&gt;)</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- Helper. Fold helper for type safty.
+<span class="lineno">   54 </span>fold :: (Doc -&gt; Doc -&gt; Doc) -&gt; [Doc] -&gt; Doc
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">fold f = foldr f empty</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>-- Concatinates a list of Docs.
+<span class="lineno">   58 </span>fsep :: [Doc] -&gt; Doc
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">fsep = fold (&lt;/&gt;)</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>(&lt;/&gt;) :: Doc -&gt; Doc -&gt; Doc
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">x &lt;/&gt; y = x &lt;&gt; softline &lt;&gt; y</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>-- Helper. Adds a softline break if line gets too long.
+<span class="lineno">   65 </span>softline :: Doc
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">softline = group line</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- Helper.
+<span class="lineno">   69 </span>group :: Doc -&gt; Doc
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">group x = flatten x `Union` x</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>-- Helper. Replaces Lines with spaces.
+<span class="lineno">   73 </span>flatten :: Doc -&gt; Doc
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">flatten (x `Concat` y) = flatten x `Concat` flatten y</span>
+<span class="lineno">   75 </span><span class="spaces"></span><span class="nottickedoff">flatten Line           = char ' '</span>
+<span class="lineno">   76 </span><span class="spaces"></span><span class="nottickedoff">flatten (x `Union` _)  = flatten x</span>
+<span class="lineno">   77 </span><span class="spaces"></span><span class="nottickedoff">flatten other          = other</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>-- Puts a doc between every item in a list of Docs.
+<span class="lineno">   80 </span>punctuate :: Doc -&gt; [Doc] -&gt; [Doc]
+<span class="lineno">   81 </span><span class="decl"><span class="istickedoff">punctuate _ []     = []</span>
+<span class="lineno">   82 </span><span class="spaces"></span><span class="istickedoff">punctuate _ [d]    = [d]</span>
+<span class="lineno">   83 </span><span class="spaces"></span><span class="istickedoff">punctuate p (d:ds) = (d &lt;&gt; p) : punctuate p ds</span></span>-- Helper. Encloses a doc between two characters.
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>compact :: Doc -&gt; String
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">compact x = transform [x]</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="nottickedoff">where transform []   = &quot;&quot;</span>
+<span class="lineno">   88 </span><span class="spaces">        </span><span class="nottickedoff">transform (d:ds) = case d of</span>
+<span class="lineno">   89 </span><span class="spaces">                           </span><span class="nottickedoff">Empty        -&gt; transform ds</span>
+<span class="lineno">   90 </span><span class="spaces">                           </span><span class="nottickedoff">Char c       -&gt; c : transform ds</span>
+<span class="lineno">   91 </span><span class="spaces">                           </span><span class="nottickedoff">Text s       -&gt; s ++ transform ds</span>
+<span class="lineno">   92 </span><span class="spaces">                           </span><span class="nottickedoff">Line         -&gt; '\n' : transform ds</span>
+<span class="lineno">   93 </span><span class="spaces">                           </span><span class="nottickedoff">a `Concat` b -&gt; transform (a:b:ds)</span>
+<span class="lineno">   94 </span><span class="spaces">                           </span><span class="nottickedoff">_ `Union` b  -&gt; transform (b:ds)</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>pretty :: Int -&gt; Doc -&gt; String
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">pretty w x = best 0 [x]</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">where best c (d:ds) = case d of</span>
+<span class="lineno">   99 </span><span class="spaces">                         </span><span class="nottickedoff">Empty        -&gt; best c ds</span>
+<span class="lineno">  100 </span><span class="spaces">                         </span><span class="nottickedoff">Char ch      -&gt; ch : best (c + 1) ds</span>
+<span class="lineno">  101 </span><span class="spaces">                         </span><span class="nottickedoff">Text s       -&gt; s ++ best (c + length s) ds</span>
+<span class="lineno">  102 </span><span class="spaces">                         </span><span class="nottickedoff">Line         -&gt; '\n' : best 0 ds</span>
+<span class="lineno">  103 </span><span class="spaces">                         </span><span class="nottickedoff">a `Concat` b -&gt; best c (a:b:ds)</span>
+<span class="lineno">  104 </span><span class="spaces">                         </span><span class="nottickedoff">a `Union` b  -&gt; nicest c (best c (a:ds)) (best c (b:ds))</span>
+<span class="lineno">  105 </span><span class="spaces">        </span><span class="nottickedoff">best _ _      = &quot;&quot;</span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="nottickedoff">nicest c a b | (w - least) `fits` a = a</span>
+<span class="lineno">  107 </span><span class="spaces">                     </span><span class="nottickedoff">| otherwise            = b</span>
+<span class="lineno">  108 </span><span class="spaces">          </span><span class="nottickedoff">where least = min w c</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>fits :: Int -&gt; String -&gt; Bool
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">w `fits` _ | w &lt; 0 = False</span>
+<span class="lineno">  112 </span><span class="spaces"></span><span class="nottickedoff">w `fits` &quot;&quot;        = True</span>
+<span class="lineno">  113 </span><span class="spaces"></span><span class="nottickedoff">w `fits` ('\n':_)  = True</span>
+<span class="lineno">  114 </span><span class="spaces"></span><span class="nottickedoff">w `fits` (c:cs)    = (w - 1) `fits` cs</span></span>
+<span class="lineno">  115 </span>
+
+</pre>
+</html>
