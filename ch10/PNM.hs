@@ -1,6 +1,6 @@
 module PNM (
     -- * Data Type
-      Greymap (..)
+      Greymap (..), Pixel, RGB, Pixmap
     -- * Parsing
     , parseP5t1, parseP5t2
     -- * Parsing Helpers
@@ -10,8 +10,10 @@ module PNM (
 import qualified Data.ByteString.Lazy.Char8 as BS8
 import qualified Data.ByteString.Lazy as BS
 
+import Data.Array (Array)
 import Data.ByteString.Lazy (ByteString)
 import Data.Char (isSpace)
+import Data.Word (Word8)
 
 -- | Represent the header and data of the PGM P5 as it's own data type. Record
 --   syntatic sugar for easy getters.
@@ -25,6 +27,10 @@ data Greymap = Greymap { greyWidth  :: Int        -- ^ The width of the PGM.
 instance Show Greymap where
     show (Greymap w h m _) = "Greymap " ++ show w ++ "x" ++ show h ++
                              "  " ++ show m
+
+type Pixel = Word8
+type RGB = (Pixel, Pixel, Pixel)
+type Pixmap = Array (Int, Int) RGB
 
 -- | A very literal parse implementation that is one big staircase of case
 --   expressions with each function returing the residual bytestring. This can

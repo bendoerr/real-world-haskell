@@ -1,19 +1,21 @@
 module Parse (
     -- Parsers
       identity, byte, char, peekByte, peekChar, while, whileWith, naturalNumber
-    , skipSpaces, assert, bytes, rawPGM
+    , skipSpaces, assert, bytes, rawPGM, rawPPM, rgb, times
     -- Parse
     , parse
 ) where
 
 import qualified Data.ByteString.Lazy as BS
 
+import Control.Applicative ((<$>))
+import Data.Array (listArray)
 import Data.ByteString.Lazy (ByteString)
 import Data.Char (chr, isDigit, isSpace)
 import Data.Int (Int64)
 import Data.Word (Word8)
 
-import PNM (Greymap (..))
+import PNM (Greymap(..), RGB, Pixmap)
 
 -- |
 data ParseState = ParseState { string :: ByteString -- ^
@@ -132,4 +134,22 @@ rawPGM =    whileWith w2c (`notElem` " \r\n\t ") ==> \header -> skipSpaces
        ==>& bytes (width * height) ==> \bitmap ->
             identity (Greymap width height maxGrey bitmap)
 
+rawPPM :: Parse Pixmap
+rawPPM =    whileWith w2c (`notElem` " \r\n\t ") ==> \header -> skipSpaces
+       ==>& assert (header == "P6") "invalid raw header"
+       ==>& naturalNumber ==> \width -> skipSpaces
+       ==>& naturalNumber ==> \height -> skipSpaces
+       ==>& naturalNumber ==> \maxValue -> assert (maxValue == 255) "max value out of spec"
+       ==>& byte
+       ==>& times (width * height) rgb ==> \pxs ->
+            identity (listArray ((0,0), (width - 1, height - 1)) pxs)
 
+rgb :: Parse RGB
+rgb = byte ==> \r ->
+      byte ==> \g ->
+      byte ==> \b ->
+      identity (r, g, b)
+
+times :: Int -> Parse a -> Parse [a]
+times 0 _ = identity []
+times n p = p ==> \x -> (x:) <$> times (n-1) p
